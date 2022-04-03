@@ -8,10 +8,10 @@ const connectionString = `postgresql://${process.env.POSTGRES_USER}:${process.en
 
 const pool = new Pool({
     connectionString: isProduction ? process.env.DATABASE_URL : connectionString,
-    // Comment out in developer modes
-    // ssl: {
-    //     rejectUnauthorized: false,
-    // },
+    // Comment out this ssl field in development mode
+    ssl: {
+        rejectUnauthorized: false,
+    },
 });
 
 module.exports = pool;
