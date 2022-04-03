@@ -2,8 +2,7 @@ require('dotenv').config();
 
 const { Client, Collection, Intents, MessageEmbed } = require('discord.js'),
     fs = require('fs'),
-    Users = require('./models/users.js'),
-    Projects = require('./models/projects.js'),
+    db = require('./utilities/db.js'),
     { weeklyLeaderboardResults, resetLeaderboard } = require('./tasks/tasks.js');
 
 const client = new Client({
@@ -14,9 +13,6 @@ const client = new Client({
 client.on('ready', () => {
     console.log(`Logged in: ${client.user.tag}`);
     client.user.setPresence({ activities: [{ name: 'Type /help in any channel for FAQ\'s' }], status: 'online' });
-
-    Users.sync();
-    Projects.sync();
 });
 
 client.on('guildMemberAdd', member => {
@@ -50,15 +46,16 @@ client.on('messageReactionAdd', async (reaction, user) => {
     if (!reaction.message.guild.me.permissionsIn(reaction.message.channel).has('SEND_MESSAGES')) return;
 
     if (reaction.emoji.name === 'award' && reaction.message.author.id !== user.id) {
-        const foundUser = await Users.findOne({ where: { username: reaction.message.author.username } });
+        const foundUser = await db.query('SELECT id, points FROM users WHERE username = $1', [reaction.message.author.username]);
 
-        if (foundUser) {
-            foundUser.increment('points', { by: 5 });
-            reaction.message.channel.send(`Congrats <@${reaction.message.author.id}>, <@${user.id}> just awarded you 5 points! (Total points: ${foundUser.points + 5})`);
+        if (foundUser.rowCount > 0) {
+            const prevPoints = Number(foundUser.rows[0].points);
+            await db.query('UPDATE users SET points = $1 WHERE id = $2', [prevPoints + 5, foundUser.rows[0].id]);
+            reaction.message.channel.send(`Congrats <@${reaction.message.author.id}>, <@${user.id}> just awarded you 5 points! (Total points: ${prevPoints + 5})`);
         }
         else {
-            const newUser = await Users.create({ username: reaction.message.author.username });
-            reaction.message.channel.send(`Congrats <@${reaction.message.author.id}>,  <@${user.id}> just awarded you 5 points! (Total points: ${newUser.points})`);
+            await db.query('INSERT INTO users (username) VALUES ($1)', [reaction.message.author.username]);
+            reaction.message.channel.send(`Congrats <@${reaction.message.author.id}>,  <@${user.id}> just awarded you 5 points! (Total points: 5)`);
         }
     }
 });

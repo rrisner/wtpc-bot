@@ -1,8 +1,7 @@
 const { MessageEmbed } = require('discord.js'),
     CronJob = require('cron').CronJob,
-    Users = require('../models/users.js'),
     getLeaderboardGraph = require('../utilities/getLeaderboardGraph.js'),
-    sequelize = require('../utilities/db');
+    db = require('../utilities/db');
 
 /*
 Cron job format =  '* * * * * *'
@@ -11,21 +10,23 @@ Sec(0-59), min(0-59), hour(0-23), day of month(1-31), month(0-11), day of week(0
 
 // 1 11 * * 1
 const weeklyLeaderboardResults = (client) => new CronJob('1 11 * * 1', async function() {
-    const count = await sequelize.query('SELECT COUNT(*) FROM Users;');
-    if (count[0][0]['COUNT(*)'] > 0) {
+    const count = await db.query('SELECT COUNT(*) FROM users;');
+
+    if (Number(count.rows[0].count) > 0) {
         try {
             const chartUrl = await getLeaderboardGraph();
 
-            const users = await Users.findAll({ limit: 5, order: [['points', 'DESC']] });
+            const users = await db.query('SELECT username, points FROM users ORDER BY points DESC LIMIT 5');
+
             const emojiSquare = ':white_small_square: ';
 
             let description = '';
 
-            for (const user of users) {
-                description += emojiSquare + user.dataValues.username + '\n';
+            for (const user of users.rows) {
+                description += emojiSquare + user.username + '\n';
             }
 
-            const leaderboardResults = new MessageEmbed().setColor('#0080ff').setTitle('Weekly Leaderboard Results').setDescription(`Congratulations to the top ${users.length} contributors!\n\n${description}`).setImage(chartUrl);
+            const leaderboardResults = new MessageEmbed().setColor('#0080ff').setTitle('Weekly Leaderboard Results').setDescription(`Congratulations to the top ${users.rowCount} contributors!\n\n${description}`).setImage(chartUrl);
 
             client.channels.cache.get(process.env.TARGET_CHANNEL,
             ).send({ embeds: [leaderboardResults] });
@@ -42,7 +43,7 @@ const weeklyLeaderboardResults = (client) => new CronJob('1 11 * * 1', async fun
 // 0 11 20 4,11 *
 const resetLeaderboard = (client) => new CronJob('0 11 20 4,11 *', async function() {
     try {
-        await sequelize.query('DELETE FROM Users;');
+        await db.query('DELETE FROM users;');
         client.channels.cache.get(process.env.TARGET_CHANNEL).send('Leaderboard reset.');
     }
     catch (error) {

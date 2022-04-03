@@ -1,6 +1,6 @@
 const { SlashCommandBuilder } = require('@discordjs/builders'),
     { MessageEmbed } = require('discord.js'),
-    Projects = require('../models/projects.js');
+    db = require('../utilities/db.js');
 
 module.exports = {
     data: new SlashCommandBuilder()
@@ -63,19 +63,19 @@ module.exports = {
             const contactInfo = interaction.options.getString('contact');
             const description = interaction.options.getString('description');
 
-            await Projects.create({ projectName, contactInfo, description });
+            await db.query('INSERT INTO projects (name, contact, description) VALUES ($1, $2, $3)', [projectName, contactInfo, description]);
 
             projectEmbed
                 .setTitle('Project Successfully Added')
                 .setDescription(`**Project name:** ${projectName}\n**Contact information:** ${contactInfo} \n**Description:** ${description}** **`);
         }
         else if (subCommand === 'view') {
-            const projects = await Projects.findAll({ });
+            const projects = await db.query('SELECT name, contact, description FROM projects');
 
-            const projectsToDisplay = projects.map(project =>
-                '**Project name:** ' + project.dataValues.projectName + '\n' +
-                '**Contact information:** ' + project.dataValues.contactInfo + '\n' +
-                '**Description:** ' + project.dataValues.description + '\n\n',
+            const projectsToDisplay = projects.rows.map(project =>
+                '**Project name:** ' + project.name + '\n' +
+                '**Contact information:** ' + project.contact + '\n' +
+                '**Description:** ' + project.description + '\n\n',
             );
 
             projectEmbed.setTitle('WTPC Active Projects').setDescription(projectsToDisplay.join(''));
@@ -86,18 +86,23 @@ module.exports = {
             const newContactInfo = interaction.options.getString('new-contact');
             const newDescription = interaction.options.getString('new-description');
 
-            const foundProject = await Projects.findOne({ where: { projectName } });
+            const foundProject = await db.query('SELECT id, name, contact, description FROM projects WHERE name = $1', [projectName]);
 
-            if (foundProject) {
-                foundProject.projectName = newProjectName || foundProject.projectName;
-                foundProject.contactInfo = newContactInfo || foundProject.contactInfo;
-                foundProject.description = newDescription || foundProject.description;
+            if (foundProject.rowCount > 0) {
+                const projectNameToUpdate = newProjectName || foundProject.rows[0].name;
+                const contactInfoToUpdate = newContactInfo || foundProject.rows[0].contact;
+                const descriptionToUpdate = newDescription || foundProject.rows[0].description;
 
-                const savedProject = await foundProject.save();
+                await db.query('UPDATE projects SET name = $1, contact = $2, description = $3 WHERE id = $4', [
+                    projectNameToUpdate,
+                    contactInfoToUpdate,
+                    descriptionToUpdate,
+                    foundProject.rows[0].id,
+                ]);
 
                 projectEmbed
                     .setTitle(`Project ${projectName} Successfully Updated`)
-                    .setDescription(`**Project name:** ${savedProject.dataValues.projectName}\n**Contact information:** ${savedProject.dataValues.contactInfo} \n**Description:** ${savedProject.dataValues.description}** **`);
+                    .setDescription(`**Project name:** ${projectNameToUpdate}\n**Contact information:** ${contactInfoToUpdate} \n**Description:** ${descriptionToUpdate}** **`);
             }
             else {
                 projectEmbed
@@ -108,10 +113,10 @@ module.exports = {
         else if (subCommand === 'delete') {
             const projectName = interaction.options.getString('name');
 
-            const foundProject = await Projects.findOne({ where: { projectName } });
+            const foundProject = await db.query('SELECT id, name, contact, description FROM projects WHERE name = $1', [projectName]);
 
-            if (foundProject) {
-                await Projects.destroy({ where: { projectName } });
+            if (foundProject.rowCount > 0) {
+                await db.query('DELETE FROM projects WHERE name = $1', [foundProject.rows[0].name]);
 
                 projectEmbed
                     .setTitle(`Project ${projectName} Successfully Deleted`)
