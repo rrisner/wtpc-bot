@@ -2,7 +2,8 @@
   "scripts": {
     "start": "node bot.js",
     "dev": "nodemon bot.js",
-    "commands": "node deploy-commands.js"
+    "commands": "node deploy-commands.js",
+    "heroku-postbuild": "node deploy-commands.js"
   },
   "dependencies": {
     "@discordjs/builders": "^0.6.0",
@@ -12,10 +13,11 @@
     "cron-schedule": "^3.0.3",
     "discord-api-types": "^0.23.1",
     "discord.js": "^13.3.0",
+    "dotenv": "^16.0.0",
+    "express": "^4.17.3",
     "node-schedule": "^2.0.0",
     "node.js": "^0.0.1-security",
-    "sequelize": "^6.8.0",
-    "sqlite3": "^5.0.2"
+    "pg": "^8.7.3"
   },
   "devDependencies": {
     "eslint": "^8.0.0",

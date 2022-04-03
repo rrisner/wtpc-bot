@@ -1,14 +1,14 @@
-const Users = require('../models/users.js');
+const db = require('./db.js');
 
 const getLeaderboardGraph = async () => {
-    const users = await Users.findAll({ limit: 5, order: [['points', 'DESC']] });
+    const users = await db.query('SELECT username, points FROM users ORDER BY points DESC LIMIT 5');
 
     const chart = {
         type: 'bar',
         options: {
             title: {
                 display: true,
-                text: `Top ${users.length} Contributors`,
+                text: `Top ${users.rowCount} Contributors`,
             },
             scales: {
                 xAxes: [
@@ -40,9 +40,9 @@ const getLeaderboardGraph = async () => {
         },
     };
 
-    for (const user of users) {
-        chart.data.labels.push(user.dataValues.username);
-        chart.data.datasets[0].data.push(user.dataValues.points);
+    for (const user of users.rows) {
+        chart.data.labels.push(user.username);
+        chart.data.datasets[0].data.push(user.points);
     }
 
     chart.data.datasets[0].data.push(0);
