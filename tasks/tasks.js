@@ -1,6 +1,5 @@
 const { MessageEmbed } = require('discord.js'),
     CronJob = require('cron').CronJob,
-    { targetChannel } = require('../config.json'),
     Users = require('../models/users.js'),
     getLeaderboardGraph = require('../utilities/getLeaderboardGraph.js'),
     sequelize = require('../utilities/db');
@@ -28,7 +27,7 @@ const weeklyLeaderboardResults = (client) => new CronJob('1 11 * * 1', async fun
 
             const leaderboardResults = new MessageEmbed().setColor('#0080ff').setTitle('Weekly Leaderboard Results').setDescription(`Congratulations to the top ${users.length} contributors!\n\n${description}`).setImage(chartUrl);
 
-            client.channels.cache.get(targetChannel,
+            client.channels.cache.get(process.env.TARGET_CHANNEL,
             ).send({ embeds: [leaderboardResults] });
         }
         catch (error) {
@@ -36,7 +35,7 @@ const weeklyLeaderboardResults = (client) => new CronJob('1 11 * * 1', async fun
         }
     }
     else {
-        client.channels.cache.get(targetChannel).send('Want to help your club? We are looking for new top contributors. Start by using the <:award:905616817102413825> emoji today!');
+        client.channels.cache.get(process.env.TARGET_CHANNEL).send('Want to help your club? We are looking for new top contributors. Start by using the <:award:905616817102413825> emoji today!');
     }
 });
 
@@ -44,7 +43,7 @@ const weeklyLeaderboardResults = (client) => new CronJob('1 11 * * 1', async fun
 const resetLeaderboard = (client) => new CronJob('0 11 20 4,11 *', async function() {
     try {
         await sequelize.query('DELETE FROM Users;');
-        client.channels.cache.get(targetChannel).send('Leaderboard reset.');
+        client.channels.cache.get(process.env.TARGET_CHANNEL).send('Leaderboard reset.');
     }
     catch (error) {
         console.error(error);

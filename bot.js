@@ -1,8 +1,9 @@
+require('dotenv').config();
+
 const { Client, Collection, Intents, MessageEmbed } = require('discord.js'),
     fs = require('fs'),
     Users = require('./models/users.js'),
     Projects = require('./models/projects.js'),
-    { token, welcomeChannel } = require('./config.json'),
     { weeklyLeaderboardResults, resetLeaderboard } = require('./tasks/tasks.js');
 
 const client = new Client({
@@ -27,9 +28,9 @@ client.on('guildMemberAdd', member => {
             'https://www.waketech.edu/themes/custom/talon/assets/images/wake-tech-2017.png',
         );
 
-    client.channels.cache.get(welcomeChannel,
+    client.channels.cache.get(process.env.WELCOME_CHANNEL,
     ).send(member.toString());
-    client.channels.cache.get(welcomeChannel,
+    client.channels.cache.get(process.env.WELCOME_CHANNEL,
     ).send({ embeds: [welcomeMessage] });
 });
 
@@ -118,4 +119,4 @@ resetLeaderboard(client).start();
 // dayBeforeReminder(client).start();
 // meetingStart(client).start();
 
-client.login(token);
+client.login(process.env.TOKEN);

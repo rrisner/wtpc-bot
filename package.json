@@ -12,6 +12,7 @@
     "cron-schedule": "^3.0.3",
     "discord-api-types": "^0.23.1",
     "discord.js": "^13.3.0",
+    "dotenv": "^16.0.0",
     "node-schedule": "^2.0.0",
     "node.js": "^0.0.1-security",
     "sequelize": "^6.8.0",
