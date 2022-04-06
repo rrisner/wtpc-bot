@@ -28,28 +28,19 @@ programming projects.
 
 ## Installation
 
-The latest version of the bot now uses PostgreSQL as it has been migrated to Heroku. The older version which used SQLite 
-has been archived in the folder "sqlite_archived". While still fully functional, the archived version is no 
-longer being maintained. Installation instructions for the SQLite version can be found in its own folder's README.
+NOTE: While still fully functional, this archived version is no longer being maintained.
 
-**Requires the following to be pre-installed:** 
->node.js 16+, PostgreSQL Server
+1. Rename **config-template.json** to **config.json** and fill out the variables as shown.
 
-1. Create the database and tables:
-```
-postgres > \c YOUR_DATABASE_NAME
-postgres > CREATE TABLE users (id serial PRIMARY KEY, username VARCHAR(100), points BIGINT DEFAULT 5);
-postgres > CREATE TABLE projects (id serial PRIMARY KEY, name VARCHAR(100), contact VARCHAR(100), description VARCHAR(1250));
-```
-2. Rename **.env.example** to **.env** and fill out the variables as shown.
+2. Install the bot:
 
-3. Install the bot:
+`npm install`
 
-`$ npm install`
+`npm rebuild` #needed for sqlite to work
 
-`$ node deploy-commands.js` 
+`node deploy-commands.js`
 
-`$ node bot.js`
+`node bot.js`
 
 ## Authors
 
