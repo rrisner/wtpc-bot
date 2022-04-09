@@ -47,14 +47,17 @@ client.on('messageReactionAdd', async (reaction, user) => {
 
     if (reaction.emoji.name === 'award' && reaction.message.author.id !== user.id) {
         const foundUser = await db.query('SELECT id, points FROM users WHERE username = $1', [reaction.message.author.username]);
+        console.log(`foundUser: ${foundUser}`);
 
         if (foundUser.rowCount > 0) {
             const prevPoints = Number(foundUser.rows[0].points);
             await db.query('UPDATE users SET points = $1 WHERE id = $2', [prevPoints + 5, foundUser.rows[0].id]);
+            console.log(`Updated user: ${foundUser.rows[0].username} to points: ${prevPoints + 5}`);
             reaction.message.channel.send(`Congrats <@${reaction.message.author.id}>, <@${user.id}> just awarded you 5 points! (Total points: ${prevPoints + 5})`);
         }
         else {
             await db.query('INSERT INTO users (username) VALUES ($1)', [reaction.message.author.username]);
+            console.log(`Added user: ${reaction.message.author.username} with default points: 5`);
             reaction.message.channel.send(`Congrats <@${reaction.message.author.id}>,  <@${user.id}> just awarded you 5 points! (Total points: 5)`);
         }
     }

@@ -2,6 +2,7 @@ const db = require('./db.js');
 
 const getLeaderboardGraph = async () => {
     const users = await db.query('SELECT username, points FROM users ORDER BY points DESC LIMIT 5');
+    console.log(`users: ${users}`);
 
     const chart = {
         type: 'bar',
