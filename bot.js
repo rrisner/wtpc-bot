@@ -50,15 +50,24 @@ client.on('messageReactionAdd', async (reaction, user) => {
         console.log(`foundUser: ${foundUser}`);
 
         if (foundUser.rowCount > 0) {
-            const prevPoints = Number(foundUser.rows[0].points);
-            await db.query('UPDATE users SET points = $1 WHERE id = $2', [prevPoints + 5, foundUser.rows[0].id]);
-            console.log(`Updated user: ${foundUser.rows[0].username} to points: ${prevPoints + 5}`);
-            reaction.message.channel.send(`Congrats <@${reaction.message.author.id}>, <@${user.id}> just awarded you 5 points! (Total points: ${prevPoints + 5})`);
+            await db.query('UPDATE users SET points = points + 5 WHERE id = $2', [foundUser.rows[0].id]);
+            const newPoints = Number(foundUser.rows[0].points);
+            console.log(`Updated user: ${foundUser.rows[0].username} to points: ${newPoints}`);
+            reaction.message.channel.send(`Congrats <@${reaction.message.author.id}>, <@${user.id}> just awarded you 5 points! (Total points: ${newPoints})`);
         }
         else {
             await db.query('INSERT INTO users (username, points) VALUES ($1, 5)', [reaction.message.author.username]);
-            console.log(`Added user: ${reaction.message.author.username} with default points: 5`);
-            reaction.message.channel.send(`Congrats <@${reaction.message.author.id}>,  <@${user.id}> just awarded you 5 points! (Total points: 5)`);
+            
+            const newUser = await db.query('SELECT id, points FROM users WHERE username = $1', [reaction.message.author.username]);
+            if (newUser) {
+                const newPoints = Number(newUser.rows[0].points);
+                console.log(`Added user: ${reaction.message.author.username} with default points: ${newPoints}`);
+                reaction.message.channel.send(`Congrats <@${reaction.message.author.id}>,  <@${user.id}> just awarded you 5 points! (Total points: ${newPoints})`);
+            } else {
+                console.log(`Attempted to add user: ${reaction.message.author.username} with default points of 5, but failed to confirm creation of new user record`);
+                reaction.message.channel.send(`Congrats <@${reaction.message.author.id}>,  <@${user.id}> just awarded you 5 points! (Bot error: failed to confirm that points were added!)`);
+            }
+            
         }
     }
 });
