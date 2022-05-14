@@ -56,7 +56,7 @@ client.on('messageReactionAdd', async (reaction, user) => {
             reaction.message.channel.send(`Congrats <@${reaction.message.author.id}>, <@${user.id}> just awarded you 5 points! (Total points: ${prevPoints + 5})`);
         }
         else {
-            await db.query('INSERT INTO users (username) VALUES ($1)', [reaction.message.author.username]);
+            await db.query('INSERT INTO users (username, points) VALUES ($1, 5)', [reaction.message.author.username]);
             console.log(`Added user: ${reaction.message.author.username} with default points: 5`);
             reaction.message.channel.send(`Congrats <@${reaction.message.author.id}>,  <@${user.id}> just awarded you 5 points! (Total points: 5)`);
         }
